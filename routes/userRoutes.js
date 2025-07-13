@@ -11,4 +11,9 @@ router.post('/signin', userController.signin);
 // OAuth (Google/Meta) placeholders
 router.get('/oauth/:provider/callback', userController.oauthCallback);
 
+// Product (Drink) APIs
+router.post('/product', userController.createProduct);
+router.get('/products', userController.getProductsByEmail);
+router.delete('/product', userController.deleteProduct);
+
 module.exports = router;
