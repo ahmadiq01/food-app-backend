@@ -21,7 +21,9 @@ exports.signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     user = new User({ email, password: hashedPassword });
     await user.save();
-    return res.status(201).json({ message: 'User registered successfully' });
+    // Generate JWT token after successful signup
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    return res.status(201).json({ message: 'User registered successfully', token });
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });
   }
