@@ -24,7 +24,7 @@ exports.signup = async (req, res) => {
     await user.save();
     // Generate JWT token after successful signup
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    return res.status(201).json({ message: 'User registered successfully', token });
+    return res.status(201).json({ message: 'User registered successfully', token, email: user.email });
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });
   }
@@ -46,7 +46,7 @@ exports.signin = async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    return res.json({ token });
+    return res.json({ token, email: user.email });
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });
   }
@@ -58,16 +58,22 @@ exports.oauthCallback = async (req, res) => {
   return res.status(501).json({ message: 'OAuth not implemented. Please use passport.js for Google/Meta login.' });
 };
 
-// Create a new product (drink) for a user by email
+// Create one or multiple products (drinks) for a user by email
 exports.createProduct = async (req, res) => {
-  const { email, name, price, oldPrice, img } = req.body;
-  if (!email || !name || !price) {
-    return res.status(400).json({ message: 'Email, name, and price are required' });
+  let products = req.body.products;
+  // If not an array, treat as single product
+  if (!Array.isArray(products)) {
+    products = [req.body];
+  }
+  // Validate all products
+  for (const product of products) {
+    if (!product.email || !product.name || !product.price) {
+      return res.status(400).json({ message: 'Each product must have email, name, and price' });
+    }
   }
   try {
-    const product = new Product({ email, name, price, oldPrice, img });
-    await product.save();
-    return res.status(201).json({ message: 'Product created successfully', product });
+    const createdProducts = await Product.insertMany(products);
+    return res.status(201).json({ message: 'Products created successfully', products: createdProducts });
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });
   }
