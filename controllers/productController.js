@@ -1,62 +1,4 @@
-require('dotenv').config();
-
-const User = require('../models/User');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const Product = require('../models/Product');
-
-// Signup
-exports.signup = async (req, res) => {
-  const { email, password, confirmPassword } = req.body;
-  if (!email || !password || !confirmPassword) {
-    return res.status(400).json({ message: 'All fields are required' });
-  }
-  if (password !== confirmPassword) {
-    return res.status(400).json({ message: 'Passwords do not match' });
-  }
-  try {
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    user = new User({ email, password: hashedPassword });
-    await user.save();
-    // Generate JWT token after successful signup
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    return res.status(201).json({ message: 'User registered successfully', token, email: user.email });
-  } catch (err) {
-    return res.status(500).json({ message: 'Server error', error: err.message });
-  }
-};
-
-// Signin
-exports.signin = async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ message: 'All fields are required' });
-  }
-  try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    return res.json({ token, email: user.email });
-  } catch (err) {
-    return res.status(500).json({ message: 'Server error', error: err.message });
-  }
-};
-
-// Google and Meta OAuth placeholders
-exports.oauthCallback = async (req, res) => {
-  // This is a placeholder. You will need to implement OAuth logic using passport.js or similar.
-  return res.status(501).json({ message: 'OAuth not implemented. Please use passport.js for Google/Meta login.' });
-};
 
 // Create one or multiple products (drinks) for a user by email
 exports.createProduct = async (req, res) => {
@@ -107,6 +49,16 @@ exports.getProductsByEmail = async (req, res) => {
   }
 };
 
+// Get all products (no filter)
+exports.getAllProducts = async (req, res) => {
+  try {
+    const products = await Product.find();
+    return res.json({ products });
+  } catch (err) {
+    return res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
 // Delete a product by product id and email
 exports.deleteProduct = async (req, res) => {
   const { email, productId } = req.body;
@@ -122,4 +74,4 @@ exports.deleteProduct = async (req, res) => {
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });
   }
-};
+}; 

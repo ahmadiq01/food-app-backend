@@ -24,6 +24,10 @@ app.get('/', (req, res) => {
 // Define your routes
 const userRoutes = require('./routes/userRoutes');
 app.use('/api/users', userRoutes);
+const productRoutes = require('./routes/productRoutes');
+app.use('/api/products', productRoutes);
+const cartRoutes = require('./routes/cartRoutes');
+app.use('/api/cart', cartRoutes);
 
 // 404 handler
 app.use((req, res, next) => {

@@ -1,11 +1,16 @@
 const mongoose = require('mongoose');
 
-const productSchema = new mongoose.Schema({
+const cartSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
     lowercase: true,
     trim: true
+  },
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    required: false // Make productId optional
   },
   name: {
     type: String,
@@ -15,11 +20,10 @@ const productSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  oldPrice: {
-    type: Number
-  },
-  description: {
-    type: String
+  quantity: {
+    type: Number,
+    required: true,
+    default: 1
   },
   img: {
     type: String
@@ -29,4 +33,4 @@ const productSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Product', productSchema); 
+module.exports = mongoose.model('Cart', cartSchema); 
